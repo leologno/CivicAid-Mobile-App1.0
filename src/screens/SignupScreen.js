@@ -7,12 +7,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Picker } from '@react-native-picker/picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Picker } from '@react-native-picker/picker'; // Keep specific import
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/Input';
 import Button from '../components/Button';
+import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS } from '../constants/theme';
 
 const SignupScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -20,6 +23,7 @@ const SignupScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('user');
+  const [adminSecretCode, setAdminSecretCode] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
 
@@ -34,6 +38,11 @@ const SignupScreen = ({ navigation }) => {
       return;
     }
 
+    if (role === 'admin' && !adminSecretCode) {
+      Alert.alert('Error', 'Admin secret code is required to register as admin');
+      return;
+    }
+
     setLoading(true);
     const result = await register({
       name,
@@ -41,6 +50,7 @@ const SignupScreen = ({ navigation }) => {
       password,
       phone,
       role,
+      adminSecretCode: role === 'admin' ? adminSecretCode : undefined,
     });
     setLoading(false);
 
@@ -50,168 +60,215 @@ const SignupScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoIcon}>🏛️</Text>
-          </View>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Sign up to get started with CivicAid</Text>
-        </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-        <View style={styles.form}>
-          <Input
-            label="Full Name"
-            value={name}
-            onChangeText={setName}
-            placeholder="Enter your full name"
-          />
+      {/* Background Gradient */}
+      <LinearGradient
+        colors={COLORS.gradients.primary}
+        style={styles.backgroundGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
 
-          <Input
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Enter your email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <Input
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Enter your password (min 6 characters)"
-            secureTextEntry
-          />
-
-          <Input
-            label="Phone (Optional)"
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="Enter your phone number"
-            keyboardType="phone-pad"
-          />
-
-          <View style={styles.pickerContainer}>
-            <Text style={styles.label}>Role</Text>
-            <View style={styles.pickerWrapper}>
-              <Picker
-                selectedValue={role}
-                onValueChange={setRole}
-                style={styles.picker}
-              >
-                <Picker.Item label="User" value="user" />
-                <Picker.Item label="NGO" value="ngo" />
-                <Picker.Item label="Volunteer" value="volunteer" />
-                <Picker.Item label="Authority" value="authority" />
-              </Picker>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <View style={styles.header}>
+              <View style={styles.logoContainer}>
+                <Text style={styles.logoIcon}>👋</Text>
+              </View>
+              <Text style={styles.title}>Create Account</Text>
+              <Text style={styles.subtitle}>Join CivicAid and make a difference</Text>
             </View>
-          </View>
 
-          <Button title="Sign Up" onPress={handleSignup} loading={loading} />
+            <View style={styles.card}>
+              <View style={styles.form}>
+                <Input
+                  label="Full Name"
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="John Doe"
+                />
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
-            <Text
-              style={styles.linkText}
-              onPress={() => navigation.navigate('Login')}
-            >
-              Sign In
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+                <Input
+                  label="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="name@example.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+
+                <Input
+                  label="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Min 6 characters"
+                  secureTextEntry
+                />
+
+                <Input
+                  label="Phone (Optional)"
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="+880..."
+                  keyboardType="phone-pad"
+                />
+
+                <View style={styles.pickerContainer}>
+                  <Text style={styles.label}>Role</Text>
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={role}
+                      onValueChange={setRole}
+                      style={styles.picker}
+                      dropdownIconColor={COLORS.textSecondary}
+                    >
+                      <Picker.Item label="User" value="user" />
+                      <Picker.Item label="Admin" value="admin" />
+                      <Picker.Item label="NGO" value="ngo" />
+                      <Picker.Item label="Volunteer" value="volunteer" />
+                      <Picker.Item label="Authority" value="authority" />
+                    </Picker>
+                  </View>
+                </View>
+
+                {role === 'admin' && (
+                  <Input
+                    label="Admin Secret Code"
+                    value={adminSecretCode}
+                    onChangeText={setAdminSecretCode}
+                    placeholder="Enter secret code"
+                    secureTextEntry
+                  />
+                )}
+
+                <Button
+                  title="Create Account"
+                  onPress={handleSignup}
+                  loading={loading}
+                  style={styles.button}
+                />
+
+                <View style={styles.footer}>
+                  <Text style={styles.footerText}>Already have an account? </Text>
+                  <Text
+                    style={styles.linkText}
+                    onPress={() => navigation.navigate('Login')}
+                  >
+                    Sign In
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '40%', // Cover top part
+  },
+  safeArea: {
+    flex: 1,
+  },
+  keyboardView: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    padding: SPACING.l,
+    paddingTop: SPACING.xl,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: SPACING.xl,
+    marginTop: SPACING.s,
   },
   logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#667eea',
+    width: 72,
+    height: 72,
+    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#667eea',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  logoIcon: {
-    fontSize: 40,
+    marginBottom: SPACING.m,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    marginBottom: 8,
-    letterSpacing: -0.5,
+    ...TYPOGRAPHY.h1,
+    color: COLORS.surface,
+    marginBottom: SPACING.xs,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
+    ...TYPOGRAPHY.body,
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
-    paddingHorizontal: 20,
+  },
+  card: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.l,
+    ...SHADOWS.large,
+    marginBottom: SPACING.l,
   },
   form: {
     width: '100%',
   },
   pickerContainer: {
-    marginBottom: 16,
+    marginBottom: SPACING.m,
   },
   label: {
-    fontSize: 14,
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xs,
+    marginLeft: SPACING.xs,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
   },
   pickerWrapper: {
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.inputBg,
+    borderRadius: BORDER_RADIUS.m,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    overflow: 'hidden',
   },
   picker: {
-    height: 50,
+    height: 52,
+    color: COLORS.text,
+  },
+  button: {
+    marginTop: SPACING.s,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: SPACING.l,
   },
   footerText: {
-    fontSize: 14,
-    color: '#666',
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.textSecondary,
   },
   linkText: {
-    fontSize: 14,
-    color: '#667eea',
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.primary,
     fontWeight: '700',
   },
 });

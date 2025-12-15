@@ -1,6 +1,36 @@
 {
-  "name": "CivicAidMobileApp",
-  "displayName": "CivicAid"
+  "expo": {
+    "name": "CivicAID",
+    "slug": "civicaid-mobile-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0EA5E9"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.civicaid.mobile"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0090b814-b5d5-42e7-827c-71bc3de2de00"
+      }
+    }
+  }
 }
-
-

@@ -1,0 +1,120 @@
+================================================================================
+AI VISUALIZATION PROMPTS FOR CIVICAID MOBILE APP
+================================================================================
+Copy and paste each prompt individually into Nano Bana AI to generate the images.
+================================================================================
+
+1. BAR CHART - REPORTS BY CATEGORY
+================================================================================
+Create a professional bar chart showing the number of reports by category for a civic issue reporting mobile app. The chart should display the following categories with their respective counts:
+- Accident: 45 reports
+- Fire: 32 reports
+- Road Issue: 78 reports
+- Water Problem: 56 reports
+- Waste Management: 41 reports
+- Electricity: 29 reports
+- Other: 15 reports
+
+Style: Modern, clean design with blue and purple gradient bars. Include title "Reports by Category", axis labels, and grid lines. Use a professional color scheme suitable for a civic engagement app.
+
+================================================================================
+
+2. PIE CHART - SOLVED VS PENDING ISSUES
+================================================================================
+Create a professional pie chart showing the percentage breakdown of solved vs pending civic issues. The data should show:
+- Solved Issues: 65%
+- Pending Issues: 35%
+
+Style: Modern pie chart with two distinct colors (green for solved, orange for pending). Include percentage labels on each slice, a legend, and a title "Issue Resolution Status". Make it visually appealing and easy to understand at a glance.
+
+================================================================================
+
+3. LINE GRAPH - RESPONSE TIME COMPARISON
+================================================================================
+Create a professional line graph comparing response times across different months for a civic issue reporting system. The graph should show:
+- Month 1: 2.5 hours average response time
+- Month 2: 2.1 hours average response time
+- Month 3: 1.8 hours average response time
+- Month 4: 1.5 hours average response time
+- Month 5: 1.2 hours average response time
+- Month 6: 1.0 hours average response time
+
+Style: Clean line graph with a smooth curve showing improvement over time. Use a blue gradient line, include data points, grid lines, axis labels (Time in Hours, Months), and title "Average Response Time Trend". Show a downward trend indicating improved efficiency.
+
+================================================================================
+
+4. FLOW DIAGRAM - CIVIC ISSUE LIFECYCLE
+================================================================================
+Create a professional flow diagram showing the complete lifecycle of a civic issue request from submission to resolution. The flow should include these stages:
+
+1. User Submits Report (with photo/location)
+2. System Receives & Categorizes Issue
+3. Assignment Engine Matches to NGO/Authority
+4. Assigned Organization Reviews Issue
+5. Status: In Progress
+6. Field Team Dispatched
+7. Work Completed
+8. Status: Resolved
+9. User Notified & Can Verify
+10. Case Closed
+
+Style: Modern flowchart with rounded rectangles, connecting arrows, and color-coded stages (blue for submission, green for resolution, orange for in-progress). Include icons or symbols for each stage. Make it clear and easy to follow the process flow.
+
+================================================================================
+
+5. UI SCREENSHOT - DASHBOARD SCREEN
+================================================================================
+Create a realistic mobile app dashboard screen mockup for a civic issue reporting app called "CivicAid". The dashboard should include:
+
+- Header with app logo and user profile icon
+- Welcome message: "Welcome back, [User Name]"
+- Quick stats cards showing: Total Reports, Pending Issues, Resolved Issues
+- Recent activity section with list of recent reports
+- Quick action button: "File New Complaint"
+- Bottom navigation bar with icons: Home, Complaints, Notifications, Profile
+
+Style: Modern, clean mobile UI design with a professional color scheme (blues and purples). Use iOS/Android material design principles. Make it look like a real mobile app screenshot with proper spacing, shadows, and modern UI elements.
+
+================================================================================
+
+6. UI SCREENSHOT - REPORT FORM SCREEN
+================================================================================
+Create a realistic mobile app form screen for filing a civic complaint. The form should include:
+
+- Header: "File a Complaint" with back button
+- Category picker dropdown (Accident, Fire, Road Issue, Water Problem, etc.)
+- Title input field
+- Description text area
+- Location selector button with map icon
+- Photo attachment section with "Add Photo" button and thumbnail previews
+- Priority selector (Low, Medium, High, Urgent)
+- Submit button at the bottom
+
+Style: Modern mobile form design with clean input fields, proper spacing, and intuitive layout. Use a scrollable form design with clear labels and placeholders. Include visual elements like icons and a professional color scheme.
+
+================================================================================
+
+7. UI SCREENSHOT - TRACKING SCREEN
+================================================================================
+Create a realistic mobile app tracking screen showing the status of a civic complaint. The screen should include:
+
+- Header: "Complaint #12345" with status badge (e.g., "In Progress")
+- Complaint details card: Title, Category, Description, Location, Date Submitted
+- Status timeline showing: Submitted → Assigned → In Progress → Under Review → Resolved
+- Current status highlighted with checkmarks for completed steps
+- Assigned to: "City Water Department"
+- Photos section showing attached images
+- Comments/Updates section with recent activity
+- Action buttons: "View on Map", "Contact Authority"
+
+Style: Modern mobile tracking interface with a timeline visualization, status indicators, and clear information hierarchy. Use color-coded status badges and a clean, professional design that makes it easy to track complaint progress.
+
+================================================================================
+
+END OF PROMPTS
+================================================================================
+Note: Adjust the specific data values, colors, or design elements as needed when generating each visualization.
+================================================================================
+
+
+

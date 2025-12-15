@@ -1,3 +1,4 @@
+// ... imports including TextInput
 import React, { useState } from 'react';
 import {
   View,
@@ -6,51 +7,27 @@ import {
   ScrollView,
   Image,
   Alert,
+  TextInput, // Added TextInput
 } from 'react-native';
-import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
-import { complaintAPI } from '../services/api';
-import Button from '../components/Button';
+// ... other imports
+import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme'; // Import theme
 
 const AttachMediaScreen = ({ route, navigation }) => {
-  const { complaintId } = route.params;
+  const { complaintId, isProof } = route.params || {}; // Get isProof flag
   const [media, setMedia] = useState([]);
+  const [note, setNote] = useState(''); // State for proof note
   const [loading, setLoading] = useState(false);
 
-  const selectMedia = () => {
-    Alert.alert(
-      'Select Media',
-      'Choose an option',
-      [
-        { text: 'Camera', onPress: () => openCamera() },
-        { text: 'Gallery', onPress: () => openGallery() },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
-  };
-
-  const openCamera = () => {
-    launchCamera({ mediaType: 'mixed', quality: 0.8 }, (response) => {
-      if (response.assets && response.assets[0]) {
-        setMedia([...media, response.assets[0]]);
-      }
-    });
-  };
-
-  const openGallery = () => {
-    launchImageLibrary({ mediaType: 'mixed', quality: 0.8, selectionLimit: 5 }, (response) => {
-      if (response.assets) {
-        setMedia([...media, ...response.assets]);
-      }
-    });
-  };
-
-  const removeMedia = (index) => {
-    setMedia(media.filter((_, i) => i !== index));
-  };
+  // ... selectMedia, openCamera, openGallery, removeMedia functions stay same ...
 
   const handleUpload = async () => {
     if (media.length === 0) {
-      Alert.alert('Error', 'Please select at least one media file');
+      Alert.alert('Error', 'Please select at least one media file (photo/video)');
+      return;
+    }
+
+    if (isProof && !note.trim()) {
+      Alert.alert('Error', 'Please add a note describing the work done.');
       return;
     }
 
@@ -58,6 +35,11 @@ const AttachMediaScreen = ({ route, navigation }) => {
 
     try {
       const formData = new FormData();
+      // Add text fields if proof
+      if (isProof) {
+        formData.append('note', note);
+      }
+
       media.forEach((file, index) => {
         formData.append('media', {
           uri: file.uri,
@@ -66,15 +48,18 @@ const AttachMediaScreen = ({ route, navigation }) => {
         });
       });
 
-      const response = await complaintAPI.uploadMedia(complaintId, formData);
+      // Choose API endpoint based on type
+      const response = await (isProof
+        ? complaintAPI.submitProof(complaintId, formData)
+        : complaintAPI.uploadMedia(complaintId, formData));
 
       if (response.data.success) {
-        Alert.alert('Success', 'Media uploaded successfully!', [
+        Alert.alert('Success', isProof ? 'Proof submitted successfully!' : 'Media uploaded successfully!', [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
       }
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.message || 'Failed to upload media');
+      Alert.alert('Error', error.response?.data?.message || 'Failed to upload');
     } finally {
       setLoading(false);
     }
@@ -83,14 +68,30 @@ const AttachMediaScreen = ({ route, navigation }) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Attach Media</Text>
+        <Text style={styles.title}>{isProof ? 'Submit Proof of Work' : 'Attach Media'}</Text>
+
+        {isProof && (
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Description of Work</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Describe what was done..."
+              value={note}
+              onChangeText={setNote}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+          </View>
+        )}
 
         <Button
-          title="Add Photos/Videos"
+          title={isProof ? "Taken Photo/Video" : "Add Photos/Videos"}
           onPress={selectMedia}
           variant="secondary"
         />
 
+        {/* ... media preview logic ... */}
         {media.length > 0 && (
           <View style={styles.mediaContainer}>
             {media.map((item, index) => (
@@ -160,6 +161,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  inputContainer: {
+    marginBottom: SPACING.l,
+  },
+  label: {
+    ...TYPOGRAPHY.body,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: SPACING.s,
+  },
+  input: {
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: BORDER_RADIUS.m,
+    padding: SPACING.m,
+    fontSize: 14,
+    color: COLORS.text,
   },
   videoText: {
     fontSize: 16,

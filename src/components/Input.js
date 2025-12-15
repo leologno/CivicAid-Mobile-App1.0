@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 
 const Input = ({
   label,
@@ -11,27 +13,53 @@ const Input = ({
   multiline = false,
   numberOfLines = 1,
   error,
+  icon,
+  style,
   ...props
 }) => {
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleFocus = () => setIsFocused(true);
+  const handleBlur = () => setIsFocused(false);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <TextInput
-        style={[
-          styles.input,
-          multiline && styles.inputMultiline,
-          error && styles.inputError,
-        ]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#999"
-        secureTextEntry={secureTextEntry}
-        keyboardType={keyboardType}
-        multiline={multiline}
-        numberOfLines={numberOfLines}
-        {...props}
-      />
+      <View style={[
+        styles.inputWrapper,
+        isFocused && styles.wrapperFocused,
+        error && styles.wrapperError,
+        multiline && styles.wrapperMultiline
+      ]}>
+        {icon && (
+          <View style={styles.iconContainer}>
+            <Ionicons
+              name={icon}
+              size={20}
+              color={isFocused ? COLORS.primary : COLORS.textLight}
+            />
+          </View>
+        )}
+        <TextInput
+          style={[
+            styles.input,
+            icon && styles.inputWithIcon,
+            multiline && styles.inputMultilineText,
+          ]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={COLORS.textLight}
+          secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          selectionColor={COLORS.primary}
+          {...props}
+        />
+      </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
@@ -39,44 +67,67 @@ const Input = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: SPACING.m,
   },
   label: {
-    fontSize: 14,
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xs,
+    marginLeft: SPACING.xs,
     fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 8,
-    letterSpacing: 0.2,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.inputBg,
+    borderRadius: BORDER_RADIUS.m,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    overflow: 'hidden',
+  },
+  wrapperFocused: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.surface,
+    elevation: 2,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  wrapperError: {
+    borderColor: COLORS.error,
+    backgroundColor: '#FEF2F2',
+  },
+  wrapperMultiline: {
+    minHeight: 120,
+    alignItems: 'flex-start',
+  },
+  iconContainer: {
+    paddingLeft: SPACING.m,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   input: {
-    borderWidth: 2,
-    borderColor: '#E5E5E5',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    flex: 1,
+    paddingHorizontal: SPACING.m,
+    paddingVertical: SPACING.m,
     fontSize: 16,
-    color: '#1a1a1a',
-    backgroundColor: '#FAFAFA',
+    color: COLORS.text,
     minHeight: 52,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
-  inputMultiline: {
-    minHeight: 120,
+  inputWithIcon: {
+    paddingLeft: SPACING.s,
+  },
+  inputMultilineText: {
+    paddingTop: SPACING.m,
     textAlignVertical: 'top',
-    paddingTop: 14,
-  },
-  inputError: {
-    borderColor: '#FF3B30',
-    backgroundColor: '#FFF5F5',
+    minHeight: 120,
   },
   errorText: {
-    color: '#FF3B30',
+    color: COLORS.error,
     fontSize: 12,
-    marginTop: 6,
+    marginTop: 4,
+    marginLeft: SPACING.xs,
     fontWeight: '500',
   },
 });

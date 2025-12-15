@@ -35,10 +35,10 @@ exports.getAssignmentByComplaint = async (req, res, next) => {
 // @access  Private
 exports.getMyAssignments = async (req, res, next) => {
   try {
-    if (req.user.role !== 'ngo' && req.user.role !== 'authority') {
+    if (req.user.role !== 'ngo' && req.user.role !== 'authority' && req.user.role !== 'volunteer' && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        message: 'Only NGOs and Authorities can view their assignments',
+        message: 'Only NGOs, Authorities, and Volunteers can view their assignments',
       });
     }
 

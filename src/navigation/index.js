@@ -19,6 +19,11 @@ import UserProfileScreen from '../screens/UserProfileScreen';
 import AdminManageUsersScreen from '../screens/AdminManageUsersScreen';
 import AdminReportsScreen from '../screens/AdminReportsScreen';
 import AdminAnalyticsScreen from '../screens/AdminAnalyticsScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import EmergencyScreen from '../screens/EmergencyScreen';
+import { View, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS, SHADOWS } from '../constants/theme';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -31,28 +36,106 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
+// Tab Navigator
+const TabNavigator = () => (
+  <Tab.Navigator
+    screenOptions={({ route }) => ({
+      headerShown: false,
+      tabBarShowLabel: false,
+      tabBarStyle: {
+        backgroundColor: COLORS.surface,
+        borderTopWidth: 0,
+        elevation: 15, // Higher elevation for floating input
+        height: Platform.OS === 'ios' ? 85 : 70, // Slightly taller
+        paddingBottom: Platform.OS === 'ios' ? 25 : 10,
+        borderRadius: 20, // Rounded corners all around
+        margin: 16, // Float from edges
+        position: 'absolute', // Float above content
+        bottom: 0,
+        left: 0,
+        right: 0,
+        ...SHADOWS.large,
+      },
+      tabBarIcon: ({ focused, color, size }) => {
+        let iconName;
+
+        if (route.name === 'HomeTab') {
+          iconName = focused ? 'home' : 'home-outline';
+        } else if (route.name === 'TasksTab') {
+          iconName = focused ? 'list' : 'list-outline';
+        } else if (route.name === 'AddTab') {
+          iconName = 'add-circle';
+        } else if (route.name === 'EmergencyTab') {
+          iconName = focused ? 'warning' : 'warning-outline';
+        } else if (route.name === 'ProfileTab') {
+          iconName = focused ? 'person' : 'person-outline';
+        }
+
+        // Custom big button for Add
+        if (route.name === 'AddTab') {
+          return (
+            <View style={{
+              top: -25, // Adjusted for floating bar height
+              width: 60,
+              height: 60,
+              borderRadius: 30,
+              backgroundColor: COLORS.primary,
+              justifyContent: 'center',
+              alignItems: 'center',
+              ...SHADOWS.modern,
+            }}>
+              <Ionicons name="add" size={32} color="#FFF" />
+            </View>
+          );
+        }
+
+        return <Ionicons name={iconName} size={24} color={focused ? COLORS.primary : COLORS.textLight} />;
+      },
+      tabBarActiveTintColor: COLORS.primary,
+      tabBarInactiveTintColor: COLORS.textLight,
+    })}
+  >
+    <Tab.Screen name="HomeTab" component={DashboardScreen} />
+    <Tab.Screen name="TasksTab" component={TrackComplaintsScreen} />
+    <Tab.Screen
+      name="AddTab"
+      component={FileComplaintScreen}
+      listeners={({ navigation }) => ({
+        tabPress: (e) => {
+          e.preventDefault();
+          navigation.navigate('FileComplaint');
+        },
+      })}
+    />
+    <Tab.Screen name="EmergencyTab" component={EmergencyScreen} />
+    <Tab.Screen name="ProfileTab" component={UserProfileScreen} />
+  </Tab.Navigator>
+);
+
 // Main App Stack
 const AppStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: '#667eea' },
+      headerStyle: { backgroundColor: COLORS.primary },
       headerTintColor: '#FFF',
       headerTitleStyle: { fontWeight: '700', fontSize: 18 },
       headerShadowVisible: true,
     }}
   >
-    <Stack.Screen 
-      name="Dashboard" 
-      component={DashboardScreen}
+    {/* Tab Navigator is the new "Home" */}
+    <Stack.Screen
+      name="MainTabs"
+      component={TabNavigator}
       options={{ headerShown: false }}
     />
+
+    {/* Standalone Screens */}
     <Stack.Screen name="FileComplaint" component={FileComplaintScreen} />
     <Stack.Screen name="AttachMedia" component={AttachMediaScreen} />
-    <Stack.Screen name="TrackComplaints" component={TrackComplaintsScreen} />
     <Stack.Screen name="ComplaintDetails" component={ComplaintDetailsScreen} />
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="AssignTasks" component={AssignTasksScreen} />
-    <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+    <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 
@@ -60,7 +143,7 @@ const AppStack = () => (
 const AdminStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: '#667eea' },
+      headerStyle: { backgroundColor: COLORS.primary },
       headerTintColor: '#FFF',
       headerTitleStyle: { fontWeight: '700', fontSize: 18 },
       headerShadowVisible: true,
@@ -87,8 +170,8 @@ const AppNavigator = () => {
           <>
             <Stack.Screen name="App" component={AppStack} />
             {user?.role === 'admin' && (
-              <Stack.Screen 
-                name="Admin" 
+              <Stack.Screen
+                name="Admin"
                 component={AdminStack}
                 options={{ presentation: 'modal' }}
               />

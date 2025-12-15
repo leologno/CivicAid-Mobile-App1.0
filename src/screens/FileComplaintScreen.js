@@ -7,13 +7,18 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
-import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
+import MapView, { Marker } from 'react-native-maps';
+import * as Location from 'expo-location';
 import { complaintAPI } from '../services/api';
 import Input from '../components/Input';
 import Button from '../components/Button';
+import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 
 const FileComplaintScreen = ({ navigation }) => {
   const [title, setTitle] = useState('');
@@ -37,20 +42,44 @@ const FileComplaintScreen = ({ navigation }) => {
     );
   };
 
-  const openCamera = () => {
-    launchCamera({ mediaType: 'mixed', quality: 0.8 }, (response) => {
-      if (response.assets && response.assets[0]) {
-        setMedia([...media, response.assets[0]]);
-      }
+  const openCamera = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission to access camera is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      quality: 0.8,
+      allowsEditing: true,
     });
+
+    if (!result.canceled && result.assets && result.assets[0]) {
+      setMedia([...media, result.assets[0]]);
+    }
   };
 
-  const openGallery = () => {
-    launchImageLibrary({ mediaType: 'mixed', quality: 0.8, selectionLimit: 5 }, (response) => {
-      if (response.assets) {
-        setMedia([...media, ...response.assets]);
-      }
+  const openGallery = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission to access gallery is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      quality: 0.8,
+      allowsMultipleSelection: true,
+      selectionLimit: 5,
     });
+
+    if (!result.canceled && result.assets) {
+      // Filter out duplicates if needed, or just append
+      setMedia([...media, ...result.assets]);
+    }
   };
 
   const removeMedia = (index) => {
@@ -105,173 +134,262 @@ const FileComplaintScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>File a Complaint</Text>
+    <LinearGradient
+      colors={COLORS.gradients.background}
+      style={styles.safeArea}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <Text style={styles.title}>File a Complaint</Text>
 
-        <Input
-          label="Title"
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Brief description of the issue"
-        />
-
-        <Input
-          label="Description"
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Detailed description of the complaint"
-          multiline
-          numberOfLines={4}
-        />
-
-        <View style={styles.pickerContainer}>
-          <Text style={styles.label}>Category</Text>
-          <View style={styles.pickerWrapper}>
-            <Picker selectedValue={category} onValueChange={setCategory} style={styles.picker}>
-              <Picker.Item label="Infrastructure" value="infrastructure" />
-              <Picker.Item label="Sanitation" value="sanitation" />
-              <Picker.Item label="Safety" value="safety" />
-              <Picker.Item label="Environment" value="environment" />
-              <Picker.Item label="Health" value="health" />
-              <Picker.Item label="Education" value="education" />
-              <Picker.Item label="Transport" value="transport" />
-              <Picker.Item label="Other" value="other" />
-            </Picker>
-          </View>
-        </View>
-
-        <Input
-          label="Address"
-          value={address}
-          onChangeText={setAddress}
-          placeholder="Location address"
-        />
-
-        <View style={styles.locationRow}>
-          <View style={styles.locationInput}>
             <Input
-              label="Latitude"
-              value={latitude}
-              onChangeText={setLatitude}
-              placeholder="e.g., 28.6139"
-              keyboardType="numeric"
+              label="Title"
+              value={title}
+              onChangeText={setTitle}
+              placeholder="Brief description of the issue"
             />
-          </View>
-          <View style={[styles.locationInput, styles.locationInputLast]}>
-            <Input
-              label="Longitude"
-              value={longitude}
-              onChangeText={setLongitude}
-              placeholder="e.g., 77.2090"
-              keyboardType="numeric"
-            />
-          </View>
-        </View>
 
-        <View style={styles.mediaSection}>
-          <Text style={styles.label}>Media (Optional)</Text>
-          <Button
-            title="Add Photos/Videos"
-            onPress={selectMedia}
-            variant="secondary"
-          />
-          {media.length > 0 && (
-            <View style={styles.mediaList}>
-              {media.map((item, index) => (
-                <View key={index} style={styles.mediaItem}>
-                  <Text style={styles.mediaName}>
-                    {item.fileName || `Media ${index + 1}`}
-                  </Text>
-                  <Button
-                    title="Remove"
-                    onPress={() => removeMedia(index)}
-                    variant="secondary"
-                  />
-                </View>
-              ))}
+            <Input
+              label="Description"
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Detailed description of the complaint"
+              multiline
+              numberOfLines={4}
+            />
+
+            <View style={styles.pickerContainer}>
+              <Text style={styles.label}>Category</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker selectedValue={category} onValueChange={setCategory} style={styles.picker}>
+                  <Picker.Item label="Infrastructure" value="infrastructure" />
+                  <Picker.Item label="Sanitation" value="sanitation" />
+                  <Picker.Item label="Safety" value="safety" />
+                  <Picker.Item label="Environment" value="environment" />
+                  <Picker.Item label="Health" value="health" />
+                  <Picker.Item label="Education" value="education" />
+                  <Picker.Item label="Transport" value="transport" />
+                  <Picker.Item label="Other" value="other" />
+                </Picker>
+              </View>
             </View>
-          )}
-        </View>
 
-        <Button title="Submit Complaint" onPress={handleSubmit} loading={loading} />
-      </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            <Input
+              label="Address"
+              value={address}
+              onChangeText={setAddress}
+              placeholder="Location address"
+            />
+
+            <View style={styles.locationSection}>
+              <Text style={styles.label}>Location</Text>
+
+              <Button
+                title="📍 Get Current Location"
+                onPress={async () => {
+                  let { status } = await Location.requestForegroundPermissionsAsync();
+                  if (status !== 'granted') {
+                    Alert.alert('Permission to access location was denied');
+                    return;
+                  }
+
+                  setLoading(true);
+                  try {
+                    let location = await Location.getCurrentPositionAsync({});
+                    setLatitude(location.coords.latitude.toString());
+                    setLongitude(location.coords.longitude.toString());
+                  } catch (error) {
+                    Alert.alert('Error', 'Could not fetch location');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                variant="secondary"
+                style={{ marginBottom: SPACING.m }}
+              />
+
+              <View style={styles.mapContainer}>
+                <MapView
+                  style={styles.map}
+                  region={{
+                    latitude: parseFloat(latitude) || 23.8103, // Default to Dhaka
+                    longitude: parseFloat(longitude) || 90.4125,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                  }}
+                  onPress={(e) => {
+                    setLatitude(e.nativeEvent.coordinate.latitude.toString());
+                    setLongitude(e.nativeEvent.coordinate.longitude.toString());
+                  }}
+                >
+                  {latitude && longitude && (
+                    <Marker
+                      coordinate={{
+                        latitude: parseFloat(latitude),
+                        longitude: parseFloat(longitude),
+                      }}
+                      draggable
+                      onDragEnd={(e) => {
+                        setLatitude(e.nativeEvent.coordinate.latitude.toString());
+                        setLongitude(e.nativeEvent.coordinate.longitude.toString());
+                      }}
+                    />
+                  )}
+                </MapView>
+                {!latitude && (
+                  <View style={styles.mapOverlay}>
+                    <Text style={styles.mapOverlayText}>Tap map to select location</Text>
+                  </View>
+                )}
+              </View>
+
+              <Text style={styles.coordText}>
+                {latitude && longitude ? `${parseFloat(latitude).toFixed(4)}, ${parseFloat(longitude).toFixed(4)}` : 'No location selected'}
+              </Text>
+            </View>
+
+            <View style={styles.mediaSection}>
+              <Text style={styles.label}>Media (Optional)</Text>
+              <Button
+                title="Add Photos/Videos"
+                onPress={selectMedia}
+                variant="secondary"
+                style={styles.mediaButton}
+              />
+              {media.length > 0 && (
+                <View style={styles.mediaList}>
+                  {media.map((item, index) => (
+                    <View key={index} style={styles.mediaItem}>
+                      <Text style={styles.mediaName}>
+                        {item.fileName || `Media ${index + 1}`}
+                      </Text>
+                      <Button
+                        title="Remove"
+                        onPress={() => removeMedia(index)}
+                        variant="secondary"
+                        style={styles.removeButton}
+                      />
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            <Button title="Submit Complaint" onPress={handleSubmit} loading={loading} />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
   },
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
   },
   scrollContent: {
-    padding: 20,
+    padding: SPACING.l,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    marginBottom: 32,
-    letterSpacing: -0.5,
+    ...TYPOGRAPHY.h2,
+    color: COLORS.text,
+    marginBottom: SPACING.xl,
   },
   pickerContainer: {
-    marginBottom: 16,
+    marginBottom: SPACING.m,
   },
   label: {
+    ...TYPOGRAPHY.body,
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+    color: COLORS.text,
+    marginBottom: SPACING.s,
   },
   pickerWrapper: {
-    borderWidth: 2,
-    borderColor: '#E5E5E5',
-    borderRadius: 12,
-    backgroundColor: '#FAFAFA',
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.m,
+    backgroundColor: COLORS.inputBg,
     overflow: 'hidden',
   },
   picker: {
     height: 52,
   },
-  locationRow: {
-    flexDirection: 'row',
+  locationSection: {
+    marginBottom: SPACING.l,
   },
-  locationInput: {
-    flex: 1,
-    marginRight: 12,
+  mapContainer: {
+    height: 200,
+    borderRadius: BORDER_RADIUS.m,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.inputBg,
   },
-  locationInputLast: {
-    marginRight: 0,
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  mapOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  mapOverlayText: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '700',
+    color: COLORS.text,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    padding: SPACING.xs,
+    borderRadius: BORDER_RADIUS.s,
+  },
+  coordText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
+    textAlign: 'center',
   },
   mediaSection: {
-    marginBottom: 16,
+    marginBottom: SPACING.l,
+  },
+  mediaButton: {
+    marginTop: SPACING.xs,
   },
   mediaList: {
-    marginTop: 12,
+    marginTop: SPACING.m,
   },
   mediaItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.m,
+    borderRadius: BORDER_RADIUS.m,
+    marginBottom: SPACING.s,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   mediaName: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    color: COLORS.text,
+    marginRight: SPACING.s,
+  },
+  removeButton: {
+    minHeight: 36,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
 });
 

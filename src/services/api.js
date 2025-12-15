@@ -1,12 +1,27 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 // Base URLs
-const BASE_URL_LOCAL = 'http://localhost:5000/api/v1';
-const BASE_URL_ANDROID = 'http://10.0.2.2:5000/api/v1';
+// Updated to use your local machine's IP for physical device testing
+const BASE_URL_ANDROID = 'http://192.168.0.6:5000/api/v1';
+const BASE_URL_IOS = 'http://192.168.0.6:5000/api/v1';
+const BASE_URL_PHYSICAL = 'http://192.168.0.6:5000/api/v1';
 
-// Detect platform and use appropriate base URL
-const BASE_URL = BASE_URL_ANDROID; // For Android emulator, change to BASE_URL_LOCAL for iOS simulator
+const getBaseURL = () => {
+  // Check for environment variable first (for production/EAS builds)
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+
+  // Using physical URL for local testing
+  return BASE_URL_PHYSICAL;
+};
+
+export const API_URL = getBaseURL();
+const BASE_URL = API_URL;
+
+console.log('API Base URL:', BASE_URL);
 
 // Create axios instance
 const api = axios.create({
@@ -61,6 +76,9 @@ export const complaintAPI = {
   getUserComplaints: () => api.get('/complaints/user'),
   getComplaint: (id) => api.get(`/complaints/${id}`),
   updateStatus: (id, status, resolutionNotes) => api.put(`/complaints/${id}/status`, { status, resolutionNotes }),
+  submitProof: (id, formData) => api.post(`/complaints/${id}/proof`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
 };
 
 // Assignment APIs

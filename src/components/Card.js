@@ -1,40 +1,41 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS } from '../constants/theme';
 
-const Card = ({ title, description, status, onPress, children }) => {
+const Card = ({ title, description, status, onPress, children, style }) => {
   const getStatusColor = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'resolved':
-        return '#10B981';
+        return COLORS.success;
       case 'in_progress':
-        return '#F59E0B';
+        return COLORS.warning;
       case 'assigned':
-        return '#667eea';
-      case 'pending':
-        return '#6B7280';
+        return COLORS.info;
       default:
-        return '#6B7280';
+        return COLORS.textSecondary;
     }
   };
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, style]}
       onPress={onPress}
       activeOpacity={0.7}
       disabled={!onPress}
     >
       {title && (
         <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title} numberOfLines={2}>{title}</Text>
           {status && (
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(status) }]}>
-              <Text style={styles.statusText}>{status.toUpperCase()}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(status) + '20' }]}>
+              <Text style={[styles.statusText, { color: getStatusColor(status) }]}>
+                {status.toUpperCase()}
+              </Text>
             </View>
           )}
         </View>
       )}
-      {description && <Text style={styles.description}>{description}</Text>}
+      {description && <Text style={styles.description} numberOfLines={3}>{description}</Text>}
       {children}
     </TouchableOpacity>
   );
@@ -42,54 +43,39 @@ const Card = ({ title, description, status, onPress, children }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.l,
+    padding: SPACING.l,
+    marginBottom: SPACING.m,
+    ...SHADOWS.small,
     borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderColor: COLORS.border,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: SPACING.s,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    ...TYPOGRAPHY.h3,
+    color: COLORS.text,
     flex: 1,
-    marginRight: 12,
-    lineHeight: 24,
+    marginRight: SPACING.s,
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    maxWidth: 100,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
+    paddingHorizontal: SPACING.s,
+    paddingVertical: 4,
+    borderRadius: BORDER_RADIUS.s,
   },
   statusText: {
-    color: '#FFF',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    textAlign: 'center',
     letterSpacing: 0.5,
   },
   description: {
-    fontSize: 15,
-    color: '#666',
-    lineHeight: 22,
+    ...TYPOGRAPHY.body,
+    color: COLORS.textSecondary,
   },
 });
 

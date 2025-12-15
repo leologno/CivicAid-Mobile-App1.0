@@ -1,5 +1,3 @@
 <resources>
-    <string name="app_name">CivicAid</string>
+  <string name="app_name">CivicAid</string>
 </resources>
-
-

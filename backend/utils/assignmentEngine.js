@@ -35,9 +35,13 @@ async function autoAssignComplaint(complaintId) {
     const { category, location } = complaint;
     const candidates = [];
 
-    // Find all NGOs and Authorities
+    // Find all NGOs, Authorities, and Volunteers
     const ngos = await User.find({ role: 'ngo', isActive: true });
     const authorities = await User.find({ role: 'authority', isActive: true });
+    const volunteers = await User.find({ role: 'volunteer', isActive: true });
+
+    // Define preferred categories for volunteers
+    const volunteerCategories = ['environment', 'safety', 'other'];
 
     // Evaluate NGOs
     for (const ngo of ngos) {
@@ -88,10 +92,10 @@ async function autoAssignComplaint(complaintId) {
         authority.location.longitude
       );
       const workload = await getActiveWorkload(authority._id);
-      const capacity = authority.authorityDetails?.capacity || 10;
+      const capacity = authority.authorityDetails?.capacity || 20;
 
       let score = 0;
-      if (categoryMatch) score += 50;
+      if (categoryMatch) score += 60; // Slightly higher weight for authorities
       score += Math.max(0, 30 - distance);
       score += Math.max(0, 20 - (workload / capacity) * 20);
 
@@ -105,6 +109,47 @@ async function autoAssignComplaint(complaintId) {
           capacity,
           score,
         });
+      }
+    }
+
+    // Evaluate Volunteers (Best for 'environment', 'safety', and 'other')
+    if (volunteerCategories.includes(category)) {
+      for (const volunteer of volunteers) {
+        if (!volunteer.location || !volunteer.location.latitude || !volunteer.location.longitude) {
+          continue;
+        }
+
+        // Volunteers effectively "match" these categories by default
+        const categoryMatch = true;
+        const distance = calculateDistance(
+          location.latitude,
+          location.longitude,
+          volunteer.location.latitude,
+          volunteer.location.longitude
+        );
+        const workload = await getActiveWorkload(volunteer._id);
+        const capacity = 3; // Lower capacity for volunteers
+
+        // Only consider volunteers within closer range (e.g., 5km)
+        if (distance > 5) continue;
+
+        let score = 0;
+        // Base score for simply being a volunteer available for this task
+        score += 30;
+        score += Math.max(0, 40 - (distance * 2)); // Heavily weight distance for volunteers
+        score += Math.max(0, 20 - (workload / capacity) * 20);
+
+        if (workload < capacity) {
+          candidates.push({
+            user: volunteer,
+            role: 'volunteer',
+            categoryMatch,
+            distance,
+            workload,
+            capacity,
+            score,
+          });
+        }
       }
     }
 

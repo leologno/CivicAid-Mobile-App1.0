@@ -60,76 +60,91 @@ const AdminReportsScreen = ({ navigation }) => {
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-      <View style={styles.content}>
-        <Text style={styles.title}>Complaint Reports</Text>
+        <View style={styles.content}>
+          <Text style={styles.title}>Complaint Reports</Text>
 
-        <View style={styles.filters}>
-          <View style={styles.filterGroup}>
-            <Text style={styles.filterLabel}>Category</Text>
-            <View style={styles.pickerWrapper}>
-              <Picker
-                selectedValue={category}
-                onValueChange={setCategory}
-                style={styles.picker}
-              >
-                <Picker.Item label="All Categories" value="" />
-                <Picker.Item label="Infrastructure" value="infrastructure" />
-                <Picker.Item label="Sanitation" value="sanitation" />
-                <Picker.Item label="Safety" value="safety" />
-                <Picker.Item label="Environment" value="environment" />
-                <Picker.Item label="Health" value="health" />
-                <Picker.Item label="Education" value="education" />
-                <Picker.Item label="Transport" value="transport" />
-                <Picker.Item label="Other" value="other" />
-              </Picker>
+          <View style={styles.filters}>
+            <View style={styles.filterGroup}>
+              <Text style={styles.filterLabel}>Category</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={category}
+                  onValueChange={setCategory}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="All Categories" value="" />
+                  <Picker.Item label="Infrastructure" value="infrastructure" />
+                  <Picker.Item label="Sanitation" value="sanitation" />
+                  <Picker.Item label="Safety" value="safety" />
+                  <Picker.Item label="Environment" value="environment" />
+                  <Picker.Item label="Health" value="health" />
+                  <Picker.Item label="Education" value="education" />
+                  <Picker.Item label="Transport" value="transport" />
+                  <Picker.Item label="Other" value="other" />
+                </Picker>
+              </View>
+            </View>
+
+            <View style={styles.filterGroup}>
+              <Text style={styles.filterLabel}>Status</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={status}
+                  onValueChange={setStatus}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="All Statuses" value="" />
+                  <Picker.Item label="Pending" value="pending" />
+                  <Picker.Item label="Assigned" value="assigned" />
+                  <Picker.Item label="In Progress" value="in_progress" />
+                  <Picker.Item label="Resolved" value="resolved" />
+                  <Picker.Item label="Rejected" value="rejected" />
+                </Picker>
+              </View>
             </View>
           </View>
 
-          <View style={styles.filterGroup}>
-            <Text style={styles.filterLabel}>Status</Text>
-            <View style={styles.pickerWrapper}>
-              <Picker
-                selectedValue={status}
-                onValueChange={setStatus}
-                style={styles.picker}
-              >
-                <Picker.Item label="All Statuses" value="" />
-                <Picker.Item label="Pending" value="pending" />
-                <Picker.Item label="Assigned" value="assigned" />
-                <Picker.Item label="In Progress" value="in_progress" />
-                <Picker.Item label="Resolved" value="resolved" />
-                <Picker.Item label="Rejected" value="rejected" />
-              </Picker>
-            </View>
+          <View style={styles.summary}>
+            <Text style={styles.summaryText}>
+              Total Complaints: {complaints.length}
+            </Text>
           </View>
-        </View>
 
-        <View style={styles.summary}>
-          <Text style={styles.summaryText}>
-            Total Complaints: {complaints.length}
-          </Text>
-        </View>
-
-        {complaints.map((complaint) => (
-          <Card
-            key={complaint._id}
-            title={complaint.title}
-            description={complaint.description}
-            status={complaint.status}
-            onPress={() => navigation.navigate('ComplaintDetails', { id: complaint._id })}
-          >
-            <View style={styles.complaintFooter}>
-              <Text style={styles.category}>{complaint.category}</Text>
-              <Text style={styles.date}>{formatDate(complaint.createdAt)}</Text>
+          {Object.entries(complaints.reduce((acc, complaint) => {
+            const cat = complaint.category || 'Other';
+            if (!acc[cat]) acc[cat] = [];
+            acc[cat].push(complaint);
+            return acc;
+          }, {})).sort().map(([categoryTitle, categoryComplaints]) => (
+            <View key={categoryTitle} style={styles.categorySection}>
+              <View style={styles.categoryHeader}>
+                <Text style={styles.categoryTitle}>{categoryTitle.toUpperCase()}</Text>
+                <View style={styles.categoryBadge}>
+                  <Text style={styles.categoryCount}>{categoryComplaints.length}</Text>
+                </View>
+              </View>
+              {categoryComplaints.map((complaint) => (
+                <Card
+                  key={complaint._id}
+                  title={complaint.title}
+                  description={complaint.description}
+                  status={complaint.status}
+                  onPress={() => navigation.navigate('ComplaintDetails', { id: complaint._id })}
+                  style={styles.groupedCard}
+                >
+                  <View style={styles.complaintFooter}>
+                    <Text style={styles.date}>{formatDate(complaint.createdAt)}</Text>
+                  </View>
+                  {complaint.user && (
+                    <Text style={styles.userInfo}>
+                      By: {complaint.user.name} ({complaint.user.email})
+                    </Text>
+                  )}
+                </Card>
+              ))}
             </View>
-            {complaint.user && (
-              <Text style={styles.userInfo}>
-                By: {complaint.user.name} ({complaint.user.email})
-              </Text>
-            )}
-          </Card>
-        ))}
-      </View>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -202,6 +217,36 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 12,
     color: '#999',
+  },
+  categorySection: {
+    marginBottom: 24,
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  categoryTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0EA5E9', // Sky Blue
+    marginRight: 8,
+    letterSpacing: 0.5,
+  },
+  categoryBadge: {
+    backgroundColor: '#E0F2FE', // Light Sky
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  categoryCount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0284C7',
+  },
+  groupedCard: {
+    marginBottom: 12,
   },
   userInfo: {
     fontSize: 12,

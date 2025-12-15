@@ -27,7 +27,7 @@ exports.createComplaint = async (req, res, next) => {
     // Auto-assign complaint
     try {
       const assignmentResult = await autoAssignComplaint(complaint._id);
-      
+
       if (assignmentResult.success) {
         // Create notification for assigned entity
         await Notification.create({
@@ -47,6 +47,17 @@ exports.createComplaint = async (req, res, next) => {
         type: 'complaint',
         relatedId: complaint._id,
       });
+
+      // Emit Socket Event for new complaint/assignment
+      const io = req.app.get('io');
+      io.emit('new_complaint', {
+        complaint: complaint,
+      });
+
+      if (assignmentResult.success) {
+        io.emit('refresh_assignments', {}); // Tell NGOs/Volunteers to refresh
+      }
+
     } catch (assignError) {
       console.error('Auto-assignment error:', assignError);
       // Continue even if assignment fails
@@ -150,10 +161,10 @@ exports.getComplaint = async (req, res, next) => {
     }
 
     // Check authorization
-    if (complaint.user._id.toString() !== req.user.id && 
-        req.user.role !== 'admin' &&
-        complaint.assignedTo?.ngo?._id?.toString() !== req.user.id &&
-        complaint.assignedTo?.authority?._id?.toString() !== req.user.id) {
+    if (complaint.user._id.toString() !== req.user.id &&
+      req.user.role !== 'admin' &&
+      complaint.assignedTo?.ngo?._id?.toString() !== req.user.id &&
+      complaint.assignedTo?.authority?._id?.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to view this complaint',
@@ -196,8 +207,8 @@ exports.updateStatus = async (req, res, next) => {
     // Check authorization
     const isOwner = complaint.user.toString() === req.user.id;
     const isAssigned = complaint.assignedTo?.ngo?.toString() === req.user.id ||
-                      complaint.assignedTo?.authority?.toString() === req.user.id;
-    
+      complaint.assignedTo?.authority?.toString() === req.user.id;
+
     if (!isOwner && !isAssigned && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
@@ -221,6 +232,14 @@ exports.updateStatus = async (req, res, next) => {
       message: `Your complaint "${complaint.title}" status has been updated to ${status}`,
       type: 'status_update',
       relatedId: complaint._id,
+    });
+
+    // Emit Socket Event
+    const io = req.app.get('io');
+    io.emit('complaint_updated', {
+      complaintId: complaint._id,
+      status: status,
+      complaint: complaint,
     });
 
     res.status(200).json({

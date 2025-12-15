@@ -13,7 +13,7 @@ module.exports = {
       bundleIdentifier: "com.example.civicaidmobile"
     },
     android: {
-      package: "com.example.civicaidmobile",
+      package: "com.civicaid.mobile",
       permissions: [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -23,18 +23,19 @@ module.exports = {
       ]
     },
     web: {
-      favicon: "./assets/favicon.png"
+      // favicon: "./assets/favicon.png" // Optional - add when you have favicon
     },
     extra: {
       eas: {
-        "projectId": "7e8847eb-50a0-4f3e-97d8-16f89d5d05d1"
+        projectId: "0090b814-b5d5-42e7-827c-71bc3de2de00"
       }
     },
     // Important: This project uses custom native code
     // It cannot run in Expo Go - use Development Build or React Native CLI
     plugins: [
       // Add any Expo plugins here if needed
-    ]
+    ],
+    scheme: "civicaid"
   }
 };
 

@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
-        
+
         // Verify token is still valid (non-blocking)
         authAPI.getMe()
           .then((response) => {
@@ -103,6 +103,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfile = async (newData) => {
+    try {
+      const updatedUser = { ...user, ...newData };
+      setUser(updatedUser);
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser)); // Persist locally for now
+
+      // TODO: Sync with backend API when ready
+      // const response = await authAPI.updateProfile(newData);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return { success: false, message: 'Failed to update profile' };
+    }
+  };
+
   const value = {
     user,
     token,
@@ -110,6 +126,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateProfile,
     isAuthenticated: !!token,
   };
 

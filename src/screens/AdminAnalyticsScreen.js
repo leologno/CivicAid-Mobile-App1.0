@@ -5,11 +5,20 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  TouchableOpacity,
+  StatusBar,
+  Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { adminAPI } from '../services/api';
+import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS } from '../constants/theme';
 import Card from '../components/Card';
 
-const AdminAnalyticsScreen = () => {
+const { width } = Dimensions.get('window');
+
+const AdminAnalyticsScreen = ({ navigation }) => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -37,9 +46,54 @@ const AdminAnalyticsScreen = () => {
     loadAnalytics();
   };
 
+  const StatCard = ({ label, value, icon, color, gradient }) => (
+    <View style={styles.statCardWrapper}>
+      <LinearGradient
+        colors={gradient}
+        style={styles.statCard}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.statIconContainer}>
+          <Ionicons name={icon} size={24} color="#FFF" />
+        </View>
+        <Text style={styles.statValue}>{value}</Text>
+        <Text style={styles.statLabel}>{label}</Text>
+      </LinearGradient>
+    </View>
+  );
+
+  const SectionTitle = ({ title, icon }) => (
+    <View style={styles.sectionHeader}>
+      <Ionicons name={icon} size={20} color={COLORS.primary} style={styles.sectionIcon} />
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+  );
+
+  const StatusItem = ({ label, count, color, total }) => {
+    const percentage = total > 0 ? (count / total) * 100 : 0;
+    return (
+      <View style={styles.statusItem}>
+        <View style={styles.statusHeader}>
+          <Text style={styles.statusLabel}>{label}</Text>
+          <Text style={[styles.statusCount, { color }]}>{count}</Text>
+        </View>
+        <View style={styles.progressBarBg}>
+          <View
+            style={[
+              styles.progressBarFill,
+              { width: `${percentage}%`, backgroundColor: color }
+            ]}
+          />
+        </View>
+      </View>
+    );
+  };
+
   if (loading || !analytics) {
     return (
-      <View style={styles.container}>
+      <View style={styles.loadingContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <Text>Loading analytics...</Text>
       </View>
     );
@@ -50,149 +104,264 @@ const AdminAnalyticsScreen = () => {
     return item?.count || 0;
   };
 
-  const getCategoryCount = (category) => {
-    const item = analytics.complaintsByCategory?.find(c => c._id === category);
-    return item?.count || 0;
-  };
-
-  const getRoleCount = (role) => {
-    const item = analytics.usersByRole?.find(r => r._id === role);
-    return item?.count || 0;
-  };
-
   return (
-    <ScrollView
+    <LinearGradient
+      colors={COLORS.gradients.background}
       style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
     >
-      <View style={styles.content}>
-        <Text style={styles.title}>Analytics Dashboard</Text>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        <Card title="Overview">
-          <View style={styles.statRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{analytics.totals.users}</Text>
-              <Text style={styles.statLabel}>Total Users</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{analytics.totals.complaints}</Text>
-              <Text style={styles.statLabel}>Total Complaints</Text>
-            </View>
+      <LinearGradient
+        colors={COLORS.gradients.exclusive}
+        style={styles.header}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <SafeAreaView edges={['top']} style={styles.headerContent}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color="#FFF" />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: '#FFF' }]}>Analytics</Text>
+            <View style={{ width: 24 }} />
           </View>
-          <View style={styles.statRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{analytics.totals.assignments}</Text>
-              <Text style={styles.statLabel}>Assignments</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{analytics.totals.recentComplaints}</Text>
-              <Text style={styles.statLabel}>Last 7 Days</Text>
-            </View>
-          </View>
-        </Card>
+        </SafeAreaView>
+      </LinearGradient>
 
-        <Card title="Complaints by Status">
-          <View style={styles.listItem}>
-            <Text style={styles.listLabel}>Pending:</Text>
-            <Text style={styles.listValue}>{getStatusCount('pending')}</Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.listLabel}>Assigned:</Text>
-            <Text style={styles.listValue}>{getStatusCount('assigned')}</Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.listLabel}>In Progress:</Text>
-            <Text style={styles.listValue}>{getStatusCount('in_progress')}</Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.listLabel}>Resolved:</Text>
-            <Text style={[styles.listValue, styles.resolved]}>
-              {getStatusCount('resolved')}
-            </Text>
-          </View>
-          <View style={styles.listItem}>
-            <Text style={styles.listLabel}>Rejected:</Text>
-            <Text style={styles.listValue}>{getStatusCount('rejected')}</Text>
-          </View>
-        </Card>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+            colors={[COLORS.primary]}
+          />
+        }
+      >
+        {/* Overview Stats Grid */}
+        <View style={styles.gridContainer}>
+          <StatCard
+            label="Total Users"
+            value={analytics.totals.users}
+            icon="people"
+            gradient={COLORS.gradients.blue}
+          />
+          <StatCard
+            label="Complaints"
+            value={analytics.totals.complaints}
+            icon="document-text"
+            gradient={COLORS.gradients.orange}
+          />
+          <StatCard
+            label="Assignments"
+            value={analytics.totals.assignments}
+            icon="briefcase"
+            gradient={['#8B5CF6', '#7C3AED']}
+          />
+          <StatCard
+            label="Recent (7d)"
+            value={analytics.totals.recentComplaints}
+            icon="time"
+            gradient={COLORS.gradients.success}
+          />
+        </View>
 
-        <Card title="Complaints by Category">
-          {analytics.complaintsByCategory?.map((item) => (
-            <View key={item._id} style={styles.listItem}>
-              <Text style={styles.listLabel}>
-                {item._id.charAt(0).toUpperCase() + item._id.slice(1)}:
-              </Text>
-              <Text style={styles.listValue}>{item.count}</Text>
-            </View>
-          ))}
-        </Card>
+        {/* Complaints by Status */}
+        <View style={styles.section}>
+          <SectionTitle title="Complaint Status" icon="pie-chart" />
+          <Card style={styles.card}>
+            <StatusItem
+              label="Pending"
+              count={getStatusCount('pending')}
+              color={COLORS.warning}
+              total={analytics.totals.complaints}
+            />
+            <StatusItem
+              label="In Progress"
+              count={getStatusCount('in_progress')}
+              color={COLORS.info}
+              total={analytics.totals.complaints}
+            />
+            <StatusItem
+              label="Resolved"
+              count={getStatusCount('resolved')}
+              color={COLORS.success}
+              total={analytics.totals.complaints}
+            />
+            <StatusItem
+              label="Rejected"
+              count={getStatusCount('rejected')}
+              color={COLORS.error}
+              total={analytics.totals.complaints}
+            />
+          </Card>
+        </View>
 
-        <Card title="Users by Role">
-          {analytics.usersByRole?.map((item) => (
-            <View key={item._id} style={styles.listItem}>
-              <Text style={styles.listLabel}>
-                {item._id.charAt(0).toUpperCase() + item._id.slice(1)}:
-              </Text>
-              <Text style={styles.listValue}>{item.count}</Text>
-            </View>
-          ))}
-        </Card>
-      </View>
-    </ScrollView>
+        {/* Users by Role */}
+        <View style={styles.section}>
+          <SectionTitle title="User Distribution" icon="person-circle" />
+          <Card style={styles.card}>
+            {analytics.usersByRole?.map((item) => (
+              <View key={item._id} style={styles.roleRow}>
+                <View style={styles.roleInfo}>
+                  <View style={[styles.roleDot, { backgroundColor: COLORS.primary }]} />
+                  <Text style={styles.roleLabel}>
+                    {item._id.charAt(0).toUpperCase() + item._id.slice(1)}
+                  </Text>
+                </View>
+                <Text style={styles.roleCount}>{item.count}</Text>
+              </View>
+            ))}
+          </Card>
+        </View>
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
   },
-  content: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
-  },
-  statItem: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  statNumber: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    marginBottom: 4,
+  header: {
+    paddingBottom: SPACING.l,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    marginBottom: SPACING.m,
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
+  headerContent: {
+    paddingHorizontal: SPACING.l,
   },
-  listItem: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  backButton: {
+    padding: SPACING.xs,
+  },
+  headerTitle: {
+    ...TYPOGRAPHY.h2,
+    color: COLORS.surface,
+  },
+  scrollContent: {
+    padding: SPACING.l,
+    paddingTop: SPACING.s,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.l,
+  },
+  statCardWrapper: {
+    width: (width - SPACING.l * 2 - SPACING.m) / 2,
+    marginBottom: SPACING.m,
+  },
+  statCard: {
+    padding: SPACING.m,
+    borderRadius: BORDER_RADIUS.l,
+    height: 120,
+    justifyContent: 'space-between',
+    ...SHADOWS.medium,
+  },
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statValue: {
+    ...TYPOGRAPHY.h2,
+    color: COLORS.surface,
+    fontSize: 28,
+  },
+  statLabel: {
+    ...TYPOGRAPHY.caption,
+    color: 'rgba(255,255,255,0.9)',
+    fontWeight: '600',
+  },
+  section: {
+    marginBottom: SPACING.l,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.m,
+  },
+  sectionIcon: {
+    marginRight: SPACING.s,
+  },
+  sectionTitle: {
+    ...TYPOGRAPHY.h3,
+    color: COLORS.text,
+  },
+  card: {
+    padding: SPACING.l,
+  },
+  statusItem: {
+    marginBottom: SPACING.m,
+  },
+  statusHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.xs,
+  },
+  statusLabel: {
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.text,
+    fontWeight: '600',
+  },
+  statusCount: {
+    ...TYPOGRAPHY.bodySmall,
+    fontWeight: '700',
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  roleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACING.s,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: COLORS.border,
   },
-  listLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '600',
+  roleInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  listValue: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '600',
+  roleDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: SPACING.s,
   },
-  resolved: {
-    color: '#34C759',
+  roleLabel: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.text,
+  },
+  roleCount: {
+    ...TYPOGRAPHY.body,
+    fontWeight: '700',
+    color: COLORS.text,
   },
 });
 

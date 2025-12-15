@@ -7,11 +7,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/Input';
 import Button from '../components/Button';
+import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS } from '../constants/theme';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -35,122 +38,152 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+
+      {/* Background Gradient */}
+      <LinearGradient
+        colors={COLORS.gradients.primary}
+        style={styles.backgroundGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
+
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoIcon}>🏛️</Text>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.header}>
+              <View style={styles.logoContainer}>
+                <Text style={styles.logoIcon}>🏛️</Text>
+              </View>
+              <Text style={styles.title}>Welcome Back</Text>
+              <Text style={styles.subtitle}>Sign in to continue your impact</Text>
             </View>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to continue to CivicAid</Text>
-          </View>
 
-          <View style={styles.form}>
-            <Input
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+            <View style={styles.card}>
+              <View style={styles.form}>
+                <Input
+                  label="Email Address"
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="name@example.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
 
-            <Input
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter your password"
-              secureTextEntry
-            />
+                <Input
+                  label="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Enter your password"
+                  secureTextEntry
+                />
 
-            <Button title="Sign In" onPress={handleLogin} loading={loading} />
+                <Button
+                  title="Sign In"
+                  onPress={handleLogin}
+                  loading={loading}
+                  style={styles.button}
+                />
 
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
-              <Text
-                style={styles.linkText}
-                onPress={() => navigation.navigate('Signup')}
-              >
-                Sign Up
-              </Text>
+                <View style={styles.footer}>
+                  <Text style={styles.footerText}>New to CivicAid? </Text>
+                  <Text
+                    style={styles.linkText}
+                    onPress={() => navigation.navigate('Signup')}
+                  >
+                    Create Account
+                  </Text>
+                </View>
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '45%', // Cover top half
+  },
+  safeArea: {
+    flex: 1,
+  },
+  keyboardView: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    padding: SPACING.l,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: SPACING.xl,
+    marginTop: SPACING.l,
   },
   logoContainer: {
     width: 80,
     height: 80,
-    borderRadius: 40,
-    backgroundColor: '#667eea',
+    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#667eea',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  logoIcon: {
-    fontSize: 40,
+    marginBottom: SPACING.m,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    marginBottom: 8,
-    letterSpacing: -0.5,
+    ...TYPOGRAPHY.h1,
+    color: COLORS.surface,
+    marginBottom: SPACING.xs,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
+    ...TYPOGRAPHY.body,
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
-    paddingHorizontal: 20,
+  },
+  card: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.l,
+    ...SHADOWS.large,
   },
   form: {
     width: '100%',
   },
+  button: {
+    marginTop: SPACING.s,
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
+    marginTop: SPACING.l,
   },
   footerText: {
-    fontSize: 14,
-    color: '#666',
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.textSecondary,
   },
   linkText: {
-    fontSize: 14,
-    color: '#667eea',
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.primary,
     fontWeight: '700',
   },
 });

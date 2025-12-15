@@ -5,25 +5,40 @@ const { validationResult } = require('express-validator');
 // @route   POST /api/v1/auth/register
 // @access  Public
 exports.register = async (req, res, next) => {
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+
       return res.status(400).json({
         success: false,
         errors: errors.array(),
       });
     }
 
-    const { name, email, password, phone, role, location, ngoDetails, authorityDetails } = req.body;
+    const { name, email, password, phone, role, location, ngoDetails, authorityDetails, adminSecretCode } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {
+
       return res.status(400).json({
         success: false,
         message: 'User already exists with this email',
       });
     }
+
+    // Validate admin secret code if trying to register as admin
+    if (role === 'admin') {
+      const ADMIN_SECRET_CODE = process.env.ADMIN_SECRET_CODE || '01798585919';
+      if (!adminSecretCode || adminSecretCode !== ADMIN_SECRET_CODE) {
+        return res.status(403).json({
+          success: false,
+          message: 'Invalid admin secret code. Only authorized personnel can register as admin.',
+        });
+      }
+    }
+
 
     // Create user
     const user = await User.create({
@@ -36,6 +51,7 @@ exports.register = async (req, res, next) => {
       ngoDetails,
       authorityDetails,
     });
+
 
     // Generate token
     const token = user.generateToken();
@@ -52,6 +68,7 @@ exports.register = async (req, res, next) => {
       },
     });
   } catch (error) {
+
     next(error);
   }
 };
