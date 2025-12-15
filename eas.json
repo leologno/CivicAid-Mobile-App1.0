@@ -15,6 +15,9 @@
       "autoIncrement": true
     },
     "apk": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://civicaid-backend.onrender.com/api/v1"
+      },
       "android": {
         "buildType": "apk"
       }
